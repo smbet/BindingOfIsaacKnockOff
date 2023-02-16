@@ -1,2 +1,7 @@
 pip install pygame
 pip install mkl-service
+
+
+also probably already installed:
+time
+sys
