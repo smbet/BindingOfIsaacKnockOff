@@ -1,2 +1,2 @@
 # BindingOfIsaacKnockOff
-Totally not a Bind of Isaac Knockoff
+Totally not a Binding of Isaac Knockoff
