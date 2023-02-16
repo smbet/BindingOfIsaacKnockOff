@@ -1,3 +1,4 @@
 1) Make a main.py
 2) Look into pygmes
     * Make a Square box
+3) use sprites for hit detenction instead of summoning endless rectangles
