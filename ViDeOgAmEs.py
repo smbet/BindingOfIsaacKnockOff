@@ -42,7 +42,7 @@ CYAN    = (0,   255, 255)
 MAGENTA = (255, 0,   255)
 
 
-ball = pygame.image.load("small_moon.png")
+ball = pygame.image.load("resources/small_moon.png")
 ballrect = ball.get_rect()
 
 
