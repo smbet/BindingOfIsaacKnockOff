@@ -45,7 +45,7 @@ CYAN    = (0,   255, 255)
 MAGENTA = (255, 0,   255)
 
 
-player = pygame.image.load("small_moon.png")
+player = pygame.image.load("resources/small_moon.png")
 player_rect = player.get_rect()
 player_pos  = list( player_rect.center )
 
