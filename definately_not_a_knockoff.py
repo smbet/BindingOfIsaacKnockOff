@@ -29,7 +29,7 @@ clock = pygame.time.Clock()
 dt = clock.tick(FPS)
 
 SPEED_CORRECTION = 1 / math.sqrt(2)
-PLAYER_SPEED = 200
+PLAYER_SPEED = 500
 BULLET_SPEED = 1000
 
 
