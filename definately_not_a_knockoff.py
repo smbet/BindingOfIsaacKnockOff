@@ -29,7 +29,7 @@ clock = pygame.time.Clock()
 dt = clock.tick(FPS)
 
 SPEED_CORRECTION = 1 / math.sqrt(2)
-PLAYER_SPEED = 120
+PLAYER_SPEED = 200
 BULLET_SPEED = 1000
 
 
@@ -48,6 +48,14 @@ MAGENTA = (255, 0,   255)
 player = pygame.image.load("resources/small_moon.png")
 player_rect = player.get_rect()
 player_pos  = list( player_rect.center )
+
+bullets = []
+def shoot():
+    bullet = pygame.image.load("resources/tictac.png")
+    bullet_rect = bullet.get_rect()  # THIS IS SUPPOSED TO GIVE A SURFACE BUT IT'S GIVING ME A RECT :((((((
+    bullet_pos = player_pos
+    bullets.append([bullet_rect, bullet_pos])
+
 
 the_game_is_running = True
 while the_game_is_running:
@@ -86,10 +94,17 @@ while the_game_is_running:
             player_pos[0] += SPEED_CORRECTION * PLAYER_SPEED / dt
         else:
             player_pos[0] += PLAYER_SPEED / dt
+    if pressed_keys[pygame.K_LSHIFT] or pressed_keys[pygame.K_RSHIFT]:
+        shoot()
+
 
 
     screen.fill(BLACK)
     screen.blit(player, player_pos)
+    for b in bullets:
+        print(b[0])
+        print(b[1])
+        screen.blit(b[0], b[1])
     pygame.display.update()
     print("player pos = ("+ str(
                                 round(player_pos[0], 4)
