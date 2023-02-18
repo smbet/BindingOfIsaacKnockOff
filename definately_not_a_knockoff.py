@@ -9,6 +9,7 @@ Authors:
 
 """
 
+# testing change
 
 import time
 import sys
@@ -32,6 +33,15 @@ SPEED_CORRECTION = 1 / math.sqrt(2)
 PLAYER_SPEED = 500
 BULLET_SPEED = 1000
 
+bullets_N  = []
+bullets_NW = []
+bullets_W  = []
+bullets_SW = []
+bullets_S  = []
+bullets_SE = []
+bullets_E  = []
+bullets_NE = []
+
 
 # define lots of colors
 BLACK   = (0,   0,   0)
@@ -45,16 +55,19 @@ CYAN    = (0,   255, 255)
 MAGENTA = (255, 0,   255)
 
 
-player = pygame.image.load("resources/small_moon.png")
+player      = pygame.image.load("resources/small_moon.png").convert()
 player_rect = player.get_rect()
 player_pos  = list( player_rect.center )
 
-bullets = []
-def shoot():
-    bullet = pygame.image.load("resources/tictac.png")
-    bullet_rect = bullet.get_rect()  # THIS IS SUPPOSED TO GIVE A SURFACE BUT IT'S GIVING ME A RECT :((((((
-    bullet_pos = player_pos
-    bullets.append([bullet_rect, bullet_pos])
+bullet      = pygame.image.load("resources/tictac_20x20.png").convert()
+
+
+# bullets = []
+# def shoot():
+#     bullet      = pygame.image.load("resources/tictac_20x20.png").convert()   # THIS IS SUPPOSED TO GIVE A SURFACE BUT IT'S GIVING ME A RECT :((((((
+#     bullet_rect = bullet.get_rect(center = player_pos)
+#     bullet_pos  = player_pos
+#     bullets.append([bullet_rect, bullet_pos])
 
 
 the_game_is_running = True
@@ -63,7 +76,11 @@ while the_game_is_running:
         if event.type == pygame.QUIT:
             the_game_is_running = False
         if event.type == pygame.KEYDOWN:
-            print("keydown")
+            if event.key == pygame.K_RIGHT:
+                bullets_E.append([
+                                  bullet.get_rect(center = player_pos), 
+                                  player_pos
+                                  ])
     
     
 
@@ -94,17 +111,25 @@ while the_game_is_running:
             player_pos[0] += SPEED_CORRECTION * PLAYER_SPEED / dt
         else:
             player_pos[0] += PLAYER_SPEED / dt
-    if pressed_keys[pygame.K_LSHIFT] or pressed_keys[pygame.K_RSHIFT]:
-        shoot()
+        
+    # if pressed_keys[pygame.K_LSHIFT] or pressed_keys[pygame.K_RSHIFT]:
+    #     # shoot()
+    #     bullet      = pygame.image.load("resources/tictac_20x20.png").convert()   # THIS IS SUPPOSED TO GIVE A SURFACE BUT IT'S GIVING ME A RECT :((((((
+    #     bullet_rect = bullet.get_rect(center = player_pos)
+    #     bullet_pos  = player_pos
+    #     bullets.append([bullet_rect, bullet_pos])
 
 
 
     screen.fill(BLACK)
     screen.blit(player, player_pos)
-    for b in bullets:
-        print(b[0])
-        print(b[1])
-        screen.blit(b[0], b[1])
+    
+    for east in bullets_E:
+        screen.blit(east[0], east[1])
+    # for b in bullets:
+    #     print(b[0])
+    #     print(b[1])
+    #     screen.blit(b[0], b[1])
     pygame.display.update()
     print("player pos = ("+ str(
                                 round(player_pos[0], 4)
