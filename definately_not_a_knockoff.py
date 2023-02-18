@@ -1,12 +1,6 @@
 """
 Created on Thu Feb 16 08:16:11 2023
 
-Authors:
-- Joshua Maldonado
-  joshuamaldonado4432@gmail.com
-- Another Name
-  TheirEmail@email.net
-
 """
 
 # testing change
@@ -37,6 +31,12 @@ BULLET_SIZE     = 15        # x y height of box of bullet
 BULLET_COOLDOWN = FPS // 5  # shoots X times per sec in 'FPS // X
 bullet_shot_at  = 0         # tracks when bullet is shot in terms of ticks
 bullet_shotQ    = False     # tracks to see if a bullet was shot (so you can't spam in multiple directions)
+def generate_bullet():
+    return pygame.Rect(
+                       player_pos[0] + pygame.Surface.get_width(player)  / 2, 
+                       player_pos[1] + pygame.Surface.get_height(player) / 2, 
+                       BULLET_SIZE, BULLET_SIZE
+                       )
 
 # all_of_the_bullets will store each bullet as a list of length 2 in the format:
 #          all_of_the_bullets = [ [bullet_rect_object, "bullet_direction"] ]
@@ -55,7 +55,7 @@ CYAN    = (0,   255, 255)
 MAGENTA = (255, 0,   255)
 
 
-player      = pygame.image.load("resources/small_moon.png").convert()
+player      = pygame.image.load("resources/moon_50x50.png").convert()
 player_rect = player.get_rect()
 player_pos  = list( player_rect.center )
 
@@ -81,107 +81,48 @@ while the_game_is_running:
     if (pressed_keys[pygame.K_w] and pressed_keys[pygame.K_a]) or (pressed_keys[pygame.K_w] and pressed_keys[pygame.K_d]) or (pressed_keys[pygame.K_s] and pressed_keys[pygame.K_a]) or (pressed_keys[pygame.K_s] and pressed_keys[pygame.K_d]):
         correct_speed = True
     # end jank
+    adjust_player_speed_by = (correct_speed * SPEED_CORRECTION + 1*(not correct_speed)) * PLAYER_SPEED / dt
     if pressed_keys[pygame.K_w]:
-        if correct_speed:
-            player_pos[1] -= SPEED_CORRECTION * PLAYER_SPEED / dt
-        else:
-            player_pos[1] -= PLAYER_SPEED / dt
+        player_pos[1] -= adjust_player_speed_by
     if pressed_keys[pygame.K_s]:
-        if correct_speed:
-            player_pos[1] += SPEED_CORRECTION * PLAYER_SPEED / dt
-        else:
-            player_pos[1] += PLAYER_SPEED / dt
+        player_pos[1] += adjust_player_speed_by
     if pressed_keys[pygame.K_a]:
-        if correct_speed:
-            player_pos[0] -= SPEED_CORRECTION * PLAYER_SPEED / dt
-        else:
-            player_pos[0] -= PLAYER_SPEED / dt
+        player_pos[0] -= adjust_player_speed_by
     if pressed_keys[pygame.K_d]:
-        if correct_speed:
-            player_pos[0] += SPEED_CORRECTION * PLAYER_SPEED / dt
-        else:
-            player_pos[0] += PLAYER_SPEED / dt
+        player_pos[0] += adjust_player_speed_by
     
 
     if total_num_of_ticks > (bullet_shot_at + BULLET_COOLDOWN):
         if (pressed_keys[pygame.K_UP] and pressed_keys[pygame.K_RIGHT]) and not bullet_shotQ:
-            all_of_the_bullets.append([
-                                    pygame.Rect(
-                                                player_pos[0] + pygame.Surface.get_width(player)  / 2, 
-                                                player_pos[1] + pygame.Surface.get_height(player) / 2, 
-                                                BULLET_SIZE, BULLET_SIZE),
-                                    "NE"
-                                    ])
+            all_of_the_bullets.append([generate_bullet(), "NE"])
             bullet_shot_at = total_num_of_ticks
             bullet_shotQ   = True
         if (pressed_keys[pygame.K_UP] and pressed_keys[pygame.K_LEFT]) and not bullet_shotQ:
-            all_of_the_bullets.append([
-                                    pygame.Rect(
-                                                player_pos[0] + pygame.Surface.get_width(player)  / 2, 
-                                                player_pos[1] + pygame.Surface.get_height(player) / 2, 
-                                                BULLET_SIZE, BULLET_SIZE),
-                                    "NW"
-                                    ])
+            all_of_the_bullets.append([generate_bullet(), "NW"])
             bullet_shot_at = total_num_of_ticks
             bullet_shotQ   = True
         if (pressed_keys[pygame.K_DOWN] and pressed_keys[pygame.K_RIGHT]) and not bullet_shotQ:
-            all_of_the_bullets.append([
-                                    pygame.Rect(
-                                                player_pos[0] + pygame.Surface.get_width(player)  / 2, 
-                                                player_pos[1] + pygame.Surface.get_height(player) / 2, 
-                                                BULLET_SIZE, BULLET_SIZE),
-                                    "SE"
-                                    ])
+            all_of_the_bullets.append([generate_bullet(), "SE"])
             bullet_shot_at = total_num_of_ticks
             bullet_shotQ   = True
         if (pressed_keys[pygame.K_DOWN] and pressed_keys[pygame.K_LEFT]) and not bullet_shotQ:
-            all_of_the_bullets.append([
-                                    pygame.Rect(
-                                                player_pos[0] + pygame.Surface.get_width(player)  / 2, 
-                                                player_pos[1] + pygame.Surface.get_height(player) / 2, 
-                                                BULLET_SIZE, BULLET_SIZE),
-                                    "SW"
-                                    ])
+            all_of_the_bullets.append([generate_bullet(), "SW"])
             bullet_shot_at = total_num_of_ticks
             bullet_shotQ   = True
         if pressed_keys[pygame.K_UP] and not bullet_shotQ:
-            all_of_the_bullets.append([
-                                    pygame.Rect(
-                                                player_pos[0] + pygame.Surface.get_width(player)  / 2, 
-                                                player_pos[1] + pygame.Surface.get_height(player) / 2, 
-                                                BULLET_SIZE, BULLET_SIZE),
-                                    "N"
-                                    ])
+            all_of_the_bullets.append([generate_bullet(), "N"])
             bullet_shot_at = total_num_of_ticks
             bullet_shotQ   = True
         if pressed_keys[pygame.K_DOWN] and not bullet_shotQ:
-            all_of_the_bullets.append([
-                                    pygame.Rect(
-                                                player_pos[0] + pygame.Surface.get_width(player)  / 2, 
-                                                player_pos[1] + pygame.Surface.get_height(player) / 2, 
-                                                BULLET_SIZE, BULLET_SIZE),
-                                    "S"
-                                    ])
+            all_of_the_bullets.append([generate_bullet(), "S"])
             bullet_shot_at = total_num_of_ticks
             bullet_shotQ   = True
         if pressed_keys[pygame.K_RIGHT] and not bullet_shotQ:
-            all_of_the_bullets.append([
-                                    pygame.Rect(
-                                                player_pos[0] + pygame.Surface.get_width(player)  / 2, 
-                                                player_pos[1] + pygame.Surface.get_height(player) / 2, 
-                                                BULLET_SIZE, BULLET_SIZE),
-                                    "E"
-                                    ])
+            all_of_the_bullets.append([generate_bullet(), "E"])
             bullet_shot_at = total_num_of_ticks
             bullet_shotQ   = True
         if pressed_keys[pygame.K_LEFT] and not bullet_shotQ:
-            all_of_the_bullets.append([
-                                    pygame.Rect(
-                                                player_pos[0] + pygame.Surface.get_width(player)  / 2, 
-                                                player_pos[1] + pygame.Surface.get_height(player) / 2, 
-                                                BULLET_SIZE, BULLET_SIZE),
-                                    "W"
-                                    ])
+            all_of_the_bullets.append([generate_bullet(), "W"])
             bullet_shot_at = total_num_of_ticks
             bullet_shotQ   = True
 
