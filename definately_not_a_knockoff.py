@@ -74,6 +74,8 @@ total_num_of_ticks  = 0
 the_game_is_running = True
 while the_game_is_running:
     bullet_shotQ = False
+    player_out_of_bounds_x = False
+    player_out_of_bounds_y = False
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -83,21 +85,36 @@ while the_game_is_running:
     if pressed_keys[pygame.K_ESCAPE]:
         the_game_is_running = False
 
+    # player movement
     # start jank
     correct_speed = False
     if (pressed_keys[pygame.K_w] and pressed_keys[pygame.K_a]) or (pressed_keys[pygame.K_w] and pressed_keys[pygame.K_d]) or (pressed_keys[pygame.K_s] and pressed_keys[pygame.K_a]) or (pressed_keys[pygame.K_s] and pressed_keys[pygame.K_d]):
         correct_speed = True
     # end jank
-    adjust_player_speed_by = (correct_speed * SPEED_CORRECTION + 1*(not correct_speed)) * PLAYER_SPEED / dt
+    adjust_player_speed_by = (correct_speed * SPEED_CORRECTION + 1*(not correct_speed)) * PLAYER_SPEED // dt
+    if (player_pos[0] < 0):
+        player_out_of_bounds_x = True
+        player_pos[0] = 1
+    if (player_pos[0] > WIDTH - 50):
+        player_out_of_bounds_x = True
+        player_pos[0] = WIDTH - 50 - 1
+    if (player_pos[1] < 0):
+        player_out_of_bounds_y = True
+        player_pos[1] = 1
+    if (player_pos[1] > HEIGHT - 50):
+        player_out_of_bounds_y = True
+        player_pos[1] = HEIGHT - 50 - 1
     if pressed_keys[pygame.K_w]:
-        player_pos[1] -= adjust_player_speed_by
+        player_pos[1] -= adjust_player_speed_by * (1 - player_out_of_bounds_y)
     if pressed_keys[pygame.K_s]:
-        player_pos[1] += adjust_player_speed_by
+        player_pos[1] += adjust_player_speed_by * (1 - player_out_of_bounds_y)
     if pressed_keys[pygame.K_a]:
-        player_pos[0] -= adjust_player_speed_by
+        player_pos[0] -= adjust_player_speed_by * (1 - player_out_of_bounds_x)
     if pressed_keys[pygame.K_d]:
-        player_pos[0] += adjust_player_speed_by    
+        player_pos[0] += adjust_player_speed_by * (1 - player_out_of_bounds_x)
+    
 
+    # bullet stuff
     if total_num_of_ticks > (bullet_shot_at + BULLET_COOLDOWN):
         if (pressed_keys[pygame.K_UP] and pressed_keys[pygame.K_RIGHT]) and not bullet_shotQ:
             direction    = "NE"
@@ -127,21 +144,21 @@ while the_game_is_running:
             bullet_shot_at = total_num_of_ticks
             all_of_the_bullets.append([generate_bullet(), direction])
 
-
+    # stuff for bubbles
     adjust_bubbles_x = 0
     adjust_bubbles_y = 0
     if bubbles_pos[0] < player_pos[0]:
-        adjust_bubbles_x += BUBBLES_SPEED / dt
+        adjust_bubbles_x += BUBBLES_SPEED // dt
     if bubbles_pos[0] > player_pos[0]:
-        adjust_bubbles_x -= BUBBLES_SPEED / dt
+        adjust_bubbles_x -= BUBBLES_SPEED // dt
     if bubbles_pos[1] < player_pos[1]:
-        adjust_bubbles_y += BUBBLES_SPEED / dt
+        adjust_bubbles_y += BUBBLES_SPEED // dt
     if bubbles_pos[1] > player_pos[1]:
-        adjust_bubbles_y -= BUBBLES_SPEED / dt
+        adjust_bubbles_y -= BUBBLES_SPEED // dt
     
     if (adjust_bubbles_x != 0) and (adjust_bubbles_y != 0):
-        bubbles_pos[0] += SPEED_CORRECTION * adjust_bubbles_x
-        bubbles_pos[1] += SPEED_CORRECTION * adjust_bubbles_y
+        bubbles_pos[0] += SPEED_CORRECTION * adjust_bubbles_x // 1
+        bubbles_pos[1] += SPEED_CORRECTION * adjust_bubbles_y // 1
     else:
         bubbles_pos[0] += adjust_bubbles_x
         bubbles_pos[1] += adjust_bubbles_y
