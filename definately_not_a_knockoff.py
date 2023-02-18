@@ -31,8 +31,9 @@ dt = clock.tick(FPS)
 
 SPEED_CORRECTION = 1 / math.sqrt(2)
 PLAYER_SPEED = 500
-BULLET_SPEED = 1000
+BULLET_SPEED = 5
 
+all_of_the_bullets = []
 bullets_N  = []
 bullets_NW = []
 bullets_W  = []
@@ -69,7 +70,7 @@ bullet      = pygame.image.load("resources/tictac_20x20.png").convert()
 #     bullet_pos  = player_pos
 #     bullets.append([bullet_rect, bullet_pos])
 
-
+total_num_of_ticks  = 0
 the_game_is_running = True
 while the_game_is_running:
     for event in pygame.event.get():
@@ -77,14 +78,18 @@ while the_game_is_running:
             the_game_is_running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RIGHT:
-                bullets_E.append([
-                                  bullet.get_rect(center = player_pos), 
-                                  player_pos
-                                  ])
+                bullets_E.append(
+                                #   bullet.get_rect(center = player_pos), 
+                                  pygame.Rect(player_pos[0], player_pos[1], 15, 15)
+                                #   [player_pos[0], player_pos[1]]  # assigned like this instead of 'player_pos' to 'untie' variables
+                                  )
+                all_of_the_bullets.append( bullets_E[-1] )
     
     
 
     pressed_keys = pygame.key.get_pressed()
+    if pressed_keys[pygame.K_ESCAPE]:
+        the_game_is_running = False
 
     # start jank
     correct_speed = False
@@ -123,20 +128,25 @@ while the_game_is_running:
 
     screen.fill(BLACK)
     screen.blit(player, player_pos)
+
+    for this_bullet in all_of_the_bullets:
+        if (this_bullet.centerx <= 0) or (this_bullet.centerx >= WIDTH) or (this_bullet.centery <= 0) or (this_bullet.centery >= HEIGHT):
+            this_bullet.remove
     
-    for east in bullets_E:
-        screen.blit(east[0], east[1])
-    # for b in bullets:
-    #     print(b[0])
-    #     print(b[1])
-    #     screen.blit(b[0], b[1])
+    for e in range(len(bullets_E)):
+        bullets_E[e] = pygame.Rect.move(bullets_E[e], BULLET_SPEED, 0)
+        pygame.draw.rect(screen, RED, bullets_E[e])
+    
     pygame.display.update()
-    print("player pos = ("+ str(
-                                round(player_pos[0], 4)
-                                )+", "+str(
-                                           round(player_pos[1], 4)
-                                           ) +")")
+    if (total_num_of_ticks % 10 == 0):
+        print("player pos = ("+ str(
+                                    round(player_pos[0], 4)
+                                    )+", "+str(
+                                            round(player_pos[1], 4)
+                                            ) +")")
+        print("number of bullets: "+ str(len(all_of_the_bullets)))
 
     pygame.time.delay(1000//FPS)
+    total_num_of_ticks += 1
 #
 print("done")
