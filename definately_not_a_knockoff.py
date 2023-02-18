@@ -30,9 +30,9 @@ clock = pygame.time.Clock()
 dt = clock.tick(FPS)
 
 SPEED_CORRECTION = 1 / math.sqrt(2)
-PLAYER_SPEED = 500
+PLAYER_SPEED = 300
 
-BULLET_SPEED    = 700
+BULLET_SPEED    = 500
 BULLET_SIZE     = 15        # x y height of box of bullet
 BULLET_COOLDOWN = FPS // 5  # shoots X times per sec in 'FPS // X
 bullet_shot_at  = 0         # tracks when bullet is shot in terms of ticks
@@ -203,18 +203,18 @@ while the_game_is_running:
         if all_of_the_bullets[i][1] == "W":
             all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], -BULLET_SPEED / dt, 0)
         if all_of_the_bullets[i][1] == "NW":
-            all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], -BULLET_SPEED / dt, -BULLET_SPEED / dt)
+            all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], -SPEED_CORRECTION * BULLET_SPEED / dt, -SPEED_CORRECTION * BULLET_SPEED / dt)
         if all_of_the_bullets[i][1] == "NE":
-            all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],  BULLET_SPEED / dt, -BULLET_SPEED / dt)
+            all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],  SPEED_CORRECTION * BULLET_SPEED / dt, -SPEED_CORRECTION * BULLET_SPEED / dt)
         if all_of_the_bullets[i][1] == "SW":
-            all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], -BULLET_SPEED / dt,  BULLET_SPEED / dt)
+            all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], -SPEED_CORRECTION * BULLET_SPEED / dt,  SPEED_CORRECTION * BULLET_SPEED / dt)
         if all_of_the_bullets[i][1] == "SE":
-            all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],  BULLET_SPEED / dt,  BULLET_SPEED / dt)
+            all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],  SPEED_CORRECTION * BULLET_SPEED / dt,  SPEED_CORRECTION * BULLET_SPEED / dt)
         
         pygame.draw.rect(screen, RED, all_of_the_bullets[i][0])
     
     pygame.display.update()
-    if (total_num_of_ticks % 10 == 0):
+    if (total_num_of_ticks % 5 == 0):
         print("player pos = ("+ str(
                                     round(player_pos[0], 4)
                                     )+", "+str(
