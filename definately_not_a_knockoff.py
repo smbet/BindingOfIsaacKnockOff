@@ -26,11 +26,12 @@ dt = clock.tick(FPS)
 SPEED_CORRECTION = 1 / math.sqrt(2)
 PLAYER_SPEED = 300
 
-BULLET_SPEED    = 500
-BULLET_SIZE     = 15        # x y height of box of bullet
-BULLET_COOLDOWN = FPS // 5  # shoots X times per sec in 'FPS // X
-bullet_shot_at  = 0         # tracks when bullet is shot in terms of ticks
-bullet_shotQ    = False     # tracks to see if a bullet was shot (so you can't spam in multiple directions)
+BULLET_SPEED       = 500
+BULLET_SIZE        = 15        # x y height of box of bullet
+BULLETS_PER_SECOND = 5
+BULLET_COOLDOWN    = FPS // BULLETS_PER_SECOND
+bullet_shot_at     = 0         # tracks when bullet is shot in terms of ticks
+bullet_shotQ       = False     # tracks to see if a bullet was shot (so you can't spam in multiple directions)
 def generate_bullet():
     return pygame.Rect(
                        player_pos[0] + pygame.Surface.get_width(player)  / 2, 
@@ -94,37 +95,32 @@ while the_game_is_running:
 
     if total_num_of_ticks > (bullet_shot_at + BULLET_COOLDOWN):
         if (pressed_keys[pygame.K_UP] and pressed_keys[pygame.K_RIGHT]) and not bullet_shotQ:
-            all_of_the_bullets.append([generate_bullet(), "NE"])
-            bullet_shot_at = total_num_of_ticks
+            direction = "NE"
             bullet_shotQ   = True
         if (pressed_keys[pygame.K_UP] and pressed_keys[pygame.K_LEFT]) and not bullet_shotQ:
-            all_of_the_bullets.append([generate_bullet(), "NW"])
-            bullet_shot_at = total_num_of_ticks
+            direction = "NW"
             bullet_shotQ   = True
         if (pressed_keys[pygame.K_DOWN] and pressed_keys[pygame.K_RIGHT]) and not bullet_shotQ:
-            all_of_the_bullets.append([generate_bullet(), "SE"])
-            bullet_shot_at = total_num_of_ticks
+            direction = "SE"
             bullet_shotQ   = True
         if (pressed_keys[pygame.K_DOWN] and pressed_keys[pygame.K_LEFT]) and not bullet_shotQ:
-            all_of_the_bullets.append([generate_bullet(), "SW"])
-            bullet_shot_at = total_num_of_ticks
+            direction = "SW"
             bullet_shotQ   = True
         if pressed_keys[pygame.K_UP] and not bullet_shotQ:
-            all_of_the_bullets.append([generate_bullet(), "N"])
-            bullet_shot_at = total_num_of_ticks
+            direction = "N"
             bullet_shotQ   = True
         if pressed_keys[pygame.K_DOWN] and not bullet_shotQ:
-            all_of_the_bullets.append([generate_bullet(), "S"])
-            bullet_shot_at = total_num_of_ticks
+            direction = "S"
             bullet_shotQ   = True
         if pressed_keys[pygame.K_RIGHT] and not bullet_shotQ:
-            all_of_the_bullets.append([generate_bullet(), "E"])
-            bullet_shot_at = total_num_of_ticks
+            direction = "E"
             bullet_shotQ   = True
         if pressed_keys[pygame.K_LEFT] and not bullet_shotQ:
-            all_of_the_bullets.append([generate_bullet(), "W"])
-            bullet_shot_at = total_num_of_ticks
+            direction = "W"
             bullet_shotQ   = True
+        if bullet_shotQ:
+            bullet_shot_at = total_num_of_ticks
+            all_of_the_bullets.append([generate_bullet(), direction])
 
 
     screen.fill(BLACK)
