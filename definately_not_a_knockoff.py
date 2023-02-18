@@ -19,12 +19,17 @@ pygame.init()
 SIZE = WIDTH, HEIGHT = 1000, 800
 screen = pygame.display.set_mode(SIZE)
 
-FPS = 30
-clock = pygame.time.Clock()
-dt = clock.tick(FPS)
+TROUBLESHOOTING = False  # determines if print statements will occur after set amount of frames
 
-SPEED_CORRECTION = 1 / math.sqrt(2)
-PLAYER_SPEED = 300
+FPS   = 30
+clock = pygame.time.Clock()
+dt    = clock.tick(FPS)
+
+SPEED_CORRECTION      = 1 / math.sqrt(2)
+PLAYER_SPEED          = 300
+player_speed_variable = 0
+
+BUBBLES_SPEED = PLAYER_SPEED / 2
 
 BULLET_SPEED       = 500
 BULLET_SIZE        = 15        # x y height of box of bullet
@@ -60,8 +65,9 @@ player      = pygame.image.load("resources/moon_50x50.png").convert()
 player_rect = player.get_rect()
 player_pos  = list( player_rect.center )
 
-# bullet      = pygame.image.load("resources/tictac_20x20.png").convert()
-
+bubbles      = pygame.image.load("resources/Bubbles_50x50.png").convert()
+bubbles_rect = bubbles.get_rect()
+bubbles_pos  = list( player_rect.center )
 
 
 total_num_of_ticks  = 0
@@ -90,41 +96,59 @@ while the_game_is_running:
     if pressed_keys[pygame.K_a]:
         player_pos[0] -= adjust_player_speed_by
     if pressed_keys[pygame.K_d]:
-        player_pos[0] += adjust_player_speed_by
-    
+        player_pos[0] += adjust_player_speed_by    
 
     if total_num_of_ticks > (bullet_shot_at + BULLET_COOLDOWN):
         if (pressed_keys[pygame.K_UP] and pressed_keys[pygame.K_RIGHT]) and not bullet_shotQ:
-            direction = "NE"
-            bullet_shotQ   = True
+            direction    = "NE"
+            bullet_shotQ = True
         if (pressed_keys[pygame.K_UP] and pressed_keys[pygame.K_LEFT]) and not bullet_shotQ:
-            direction = "NW"
-            bullet_shotQ   = True
+            direction    = "NW"
+            bullet_shotQ = True
         if (pressed_keys[pygame.K_DOWN] and pressed_keys[pygame.K_RIGHT]) and not bullet_shotQ:
-            direction = "SE"
-            bullet_shotQ   = True
+            direction    = "SE"
+            bullet_shotQ = True
         if (pressed_keys[pygame.K_DOWN] and pressed_keys[pygame.K_LEFT]) and not bullet_shotQ:
-            direction = "SW"
-            bullet_shotQ   = True
+            direction    = "SW"
+            bullet_shotQ = True
         if pressed_keys[pygame.K_UP] and not bullet_shotQ:
-            direction = "N"
-            bullet_shotQ   = True
+            direction    = "N"
+            bullet_shotQ = True
         if pressed_keys[pygame.K_DOWN] and not bullet_shotQ:
-            direction = "S"
-            bullet_shotQ   = True
+            direction    = "S"
+            bullet_shotQ = True
         if pressed_keys[pygame.K_RIGHT] and not bullet_shotQ:
-            direction = "E"
-            bullet_shotQ   = True
+            direction    = "E"
+            bullet_shotQ = True
         if pressed_keys[pygame.K_LEFT] and not bullet_shotQ:
-            direction = "W"
-            bullet_shotQ   = True
+            direction    = "W"
+            bullet_shotQ = True
         if bullet_shotQ:
             bullet_shot_at = total_num_of_ticks
             all_of_the_bullets.append([generate_bullet(), direction])
 
 
+    adjust_bubbles_x = 0
+    adjust_bubbles_y = 0
+    if bubbles_pos[0] < player_pos[0]:
+        adjust_bubbles_x += BUBBLES_SPEED / dt
+    if bubbles_pos[0] > player_pos[0]:
+        adjust_bubbles_x -= BUBBLES_SPEED / dt
+    if bubbles_pos[1] < player_pos[1]:
+        adjust_bubbles_y += BUBBLES_SPEED / dt
+    if bubbles_pos[1] > player_pos[1]:
+        adjust_bubbles_y -= BUBBLES_SPEED / dt
+    
+    if (adjust_bubbles_x != 0) and (adjust_bubbles_y != 0):
+        bubbles_pos[0] += SPEED_CORRECTION * adjust_bubbles_x
+        bubbles_pos[1] += SPEED_CORRECTION * adjust_bubbles_y
+    else:
+        bubbles_pos[0] += adjust_bubbles_x
+        bubbles_pos[1] += adjust_bubbles_y
+
     screen.fill(BLACK)
     screen.blit(player, player_pos)
+    screen.blit(bubbles, bubbles_pos)
 
     for this_bullet in all_of_the_bullets:
         if (this_bullet[0].centerx <= 0) or (this_bullet[0].centerx >= WIDTH) or (this_bullet[0].centery <= 0) or (this_bullet[0].centery >= HEIGHT):
@@ -151,15 +175,18 @@ while the_game_is_running:
         pygame.draw.rect(screen, RED, all_of_the_bullets[i][0])
     
     pygame.display.update()
-    if (total_num_of_ticks % 5 == 0):
-        print("player pos = ("+ str(
-                                    round(player_pos[0], 4)
-                                    )+", "+str(
-                                            round(player_pos[1], 4)
-                                            ) +")")
-        print("number of bullets: "+ str(len(all_of_the_bullets)))
+    if TROUBLESHOOTING:
+        if (total_num_of_ticks % 5 == 0):
+            print("player pos = ("+ str(
+                                        round(player_pos[0], 4)
+                                        )+", "+str(
+                                                round(player_pos[1], 4)
+                                                ) +")")
+            print("number of bullets: "+ str(len(all_of_the_bullets)))
 
     pygame.time.delay(1000//FPS)
     total_num_of_ticks += 1
 #
-print("done")
+print("")
+print("")
+print("- - - done - - -")
