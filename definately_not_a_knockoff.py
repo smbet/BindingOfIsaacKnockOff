@@ -64,10 +64,8 @@ CYAN    = (0,   255, 255)
 MAGENTA = (255, 0,   255)
 
 
-player      = pygame.image.load("resources/moon_50x50.png").convert()
-# player_rect = player.get_rect()
-# player_pos  = [WIDTH / 2, HEIGHT / 2]
-player_pos = [0, 0]
+player           = pygame.image.load("resources/moon_50x50.png").convert()
+player_pos       = [WIDTH / 2, HEIGHT / 2]
 player_rectangle = pygame.Rect(
                                player_pos[0],
                                player_pos[1],
@@ -75,10 +73,9 @@ player_rectangle = pygame.Rect(
                                50
                                )
 
-BUBBLES_COOLDOWN = FPS / 2  # number of ticks that bubbles is immune after respawning
-bubbles      = pygame.image.load("resources/Bubbles_50x50.png").convert()
-# bubbles_rect = bubbles.get_rect()
-bubbles_pos  = [0 ,0]
+BUBBLES_COOLDOWN  = int(FPS / 4) # number of ticks that bubbles is immune after respawning
+bubbles           = pygame.image.load("resources/Bubbles_50x50.png").convert()
+bubbles_pos       = [WIDTH * random.random(), HEIGHT * random.random()]
 bubbles_rectangle = pygame.Rect(
                                bubbles_pos[0],
                                bubbles_pos[1],
@@ -105,29 +102,22 @@ while the_game_is_running:
     if pressed_keys[pygame.K_ESCAPE]:
         the_game_is_running = False
     
-    
-    # pygame.Rect.update(bubbles_rect)
-    # pygame.Rect.update(player_rect)
-    # for b in [item[0] for item in all_of_the_bullets]:
-        # pygame.Rect.update(b)
-    # if pygame.Rect.collidelistall(bubbles_rect, [item[0] for item in all_of_the_bullets]):
-    #     print("bubbles it hit")
+
 
     if total_num_of_ticks > (bubbles_hit_tick + BUBBLES_COOLDOWN):
         for b in all_of_the_bullets:
             this_bullet = b[0]
             if pygame.Rect.colliderect(bubbles_rectangle, this_bullet):
                 print("bubbles it hit")
-                bubbles_pos[0] = 0
-                bubbles_pos[1] = 0
+                bubbles_pos[0] = WIDTH  * random.random()
+                bubbles_pos[1] = HEIGHT * random.random()
                 bubbles_hit_tick = total_num_of_ticks
     else:
         print("bubbles currently immune")
 
     if pygame.Rect.colliderect(bubbles_rectangle, player_rectangle):
         print("you're getting hit!")
-        # bubbles_pos[0] = 0
-        # bubbles_pos[1] = 0
+        the_game_is_running = False
     else:
         print("not hit")
 
