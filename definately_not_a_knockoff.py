@@ -19,10 +19,10 @@ pygame.init()
 print("\n"*5)  # this is a spacer to make it easier to troubleshoot error messages
 
 # define pygame things and essential global things
-SIZE = WIDTH, HEIGHT = 1000, 800
+SIZE = WIDTH, HEIGHT = 1000, 1000
 screen = pygame.display.set_mode(SIZE)
 
-TROUBLESHOOTING = True  # determines if print statements will occur after set amount of frames
+TROUBLESHOOTING = False  # determines if print statements will occur after set amount of frames
 
 FPS   = 30
 clock = pygame.time.Clock()
@@ -33,6 +33,7 @@ PLAYER_SPEED          = 300
 player_speed_variable = 0
 
 BUBBLES_SPEED = PLAYER_SPEED / 2
+BUBBLES_COOLDOWN  = 0 # number of ticks that bubbles is immune after respawning
 
 BULLET_SPEED       = 500
 BULLET_SIZE        = 15        # x y height of box of bullet
@@ -73,7 +74,6 @@ player_rectangle = pygame.Rect(
                                50
                                )
 
-BUBBLES_COOLDOWN  = int(FPS / 4) # number of ticks that bubbles is immune after respawning
 bubbles           = pygame.image.load("resources/Bubbles_50x50.png").convert()
 bubbles_pos       = [WIDTH * random.random(), HEIGHT * random.random()]
 bubbles_rectangle = pygame.Rect(
@@ -89,6 +89,7 @@ previous_bubbles_pos = [bubbles_pos[0], bubbles_pos[1]]
 bubbles_hit_tick     = 0
 total_num_of_ticks   = 0
 the_game_is_running  = True
+times_bubbles_killed = 0
 while the_game_is_running:
     bullet_shotQ = False
     player_out_of_bounds_x = False
@@ -112,6 +113,7 @@ while the_game_is_running:
                 bubbles_pos[0] = WIDTH  * random.random()
                 bubbles_pos[1] = HEIGHT * random.random()
                 bubbles_hit_tick = total_num_of_ticks
+                times_bubbles_killed += 1
     else:
         print("bubbles currently immune")
 
@@ -280,3 +282,5 @@ print("")
 print("")
 print("- - - done - - -")
 print("")
+
+print("times bubbles killed: "+ str(times_bubbles_killed))
