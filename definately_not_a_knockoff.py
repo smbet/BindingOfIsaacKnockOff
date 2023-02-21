@@ -8,18 +8,21 @@ Created on Thu Feb 16 08:16:11 2023
 import time
 import sys
 import math
+# import numpy as np
+import random
 import pygame
 from pygame.locals import *
 
 
 
 pygame.init()
+print("\n"*5)  # this is a spacer to make it easier to troubleshoot error messages
 
 # define pygame things and essential global things
 SIZE = WIDTH, HEIGHT = 1000, 800
 screen = pygame.display.set_mode(SIZE)
 
-TROUBLESHOOTING = False  # determines if print statements will occur after set amount of frames
+TROUBLESHOOTING = True  # determines if print statements will occur after set amount of frames
 
 FPS   = 30
 clock = pygame.time.Clock()
@@ -62,16 +65,33 @@ MAGENTA = (255, 0,   255)
 
 
 player      = pygame.image.load("resources/moon_50x50.png").convert()
-player_rect = player.get_rect()
-player_pos  = list( player_rect.center )
+# player_rect = player.get_rect()
+# player_pos  = [WIDTH / 2, HEIGHT / 2]
+player_pos = [0, 0]
+player_rectangle = pygame.Rect(
+                               player_pos[0],
+                               player_pos[1],
+                               50,
+                               50
+                               )
 
+BUBBLES_COOLDOWN = FPS / 2  # number of ticks that bubbles is immune after respawning
 bubbles      = pygame.image.load("resources/Bubbles_50x50.png").convert()
-bubbles_rect = bubbles.get_rect()
-bubbles_pos  = list( player_rect.center )
+# bubbles_rect = bubbles.get_rect()
+bubbles_pos  = [0 ,0]
+bubbles_rectangle = pygame.Rect(
+                               bubbles_pos[0],
+                               bubbles_pos[1],
+                               50,
+                               50
+                               )
 
 
-total_num_of_ticks  = 0
-the_game_is_running = True
+previous_player_pos  = [player_pos[0],  player_pos[1] ]
+previous_bubbles_pos = [bubbles_pos[0], bubbles_pos[1]]
+bubbles_hit_tick     = 0
+total_num_of_ticks   = 0
+the_game_is_running  = True
 while the_game_is_running:
     bullet_shotQ = False
     player_out_of_bounds_x = False
@@ -84,6 +104,33 @@ while the_game_is_running:
     pressed_keys = pygame.key.get_pressed()
     if pressed_keys[pygame.K_ESCAPE]:
         the_game_is_running = False
+    
+    
+    # pygame.Rect.update(bubbles_rect)
+    # pygame.Rect.update(player_rect)
+    # for b in [item[0] for item in all_of_the_bullets]:
+        # pygame.Rect.update(b)
+    # if pygame.Rect.collidelistall(bubbles_rect, [item[0] for item in all_of_the_bullets]):
+    #     print("bubbles it hit")
+
+    if total_num_of_ticks > (bubbles_hit_tick + BUBBLES_COOLDOWN):
+        for b in all_of_the_bullets:
+            this_bullet = b[0]
+            if pygame.Rect.colliderect(bubbles_rectangle, this_bullet):
+                print("bubbles it hit")
+                bubbles_pos[0] = 0
+                bubbles_pos[1] = 0
+                bubbles_hit_tick = total_num_of_ticks
+    else:
+        print("bubbles currently immune")
+
+    if pygame.Rect.colliderect(bubbles_rectangle, player_rectangle):
+        print("you're getting hit!")
+        # bubbles_pos[0] = 0
+        # bubbles_pos[1] = 0
+    else:
+        print("not hit")
+
 
     # player movement
     # start jank
@@ -95,15 +142,15 @@ while the_game_is_running:
     if (player_pos[0] < 0):
         player_out_of_bounds_x = True
         player_pos[0] = 1
-    if (player_pos[0] > WIDTH - 50):
+    if (player_pos[0] > WIDTH - pygame.Surface.get_width(player)):
         player_out_of_bounds_x = True
-        player_pos[0] = WIDTH - 50 - 1
+        player_pos[0] = WIDTH - pygame.Surface.get_width(player) - 1
     if (player_pos[1] < 0):
         player_out_of_bounds_y = True
         player_pos[1] = 1
-    if (player_pos[1] > HEIGHT - 50):
+    if (player_pos[1] > HEIGHT - pygame.Surface.get_height(player)):
         player_out_of_bounds_y = True
-        player_pos[1] = HEIGHT - 50 - 1
+        player_pos[1] = HEIGHT - pygame.Surface.get_height(player) - 1
     if pressed_keys[pygame.K_w]:
         player_pos[1] -= adjust_player_speed_by * (1 - player_out_of_bounds_y)
     if pressed_keys[pygame.K_s]:
@@ -145,27 +192,55 @@ while the_game_is_running:
             all_of_the_bullets.append([generate_bullet(), direction])
 
     # stuff for bubbles
-    adjust_bubbles_x = 0
-    adjust_bubbles_y = 0
-    if bubbles_pos[0] < player_pos[0]:
-        adjust_bubbles_x += BUBBLES_SPEED // dt
-    if bubbles_pos[0] > player_pos[0]:
-        adjust_bubbles_x -= BUBBLES_SPEED // dt
-    if bubbles_pos[1] < player_pos[1]:
-        adjust_bubbles_y += BUBBLES_SPEED // dt
-    if bubbles_pos[1] > player_pos[1]:
-        adjust_bubbles_y -= BUBBLES_SPEED // dt
-    
-    if (adjust_bubbles_x != 0) and (adjust_bubbles_y != 0):
-        bubbles_pos[0] += SPEED_CORRECTION * adjust_bubbles_x // 1
-        bubbles_pos[1] += SPEED_CORRECTION * adjust_bubbles_y // 1
+    # the "< 5" bit here was picked arbitrarily because it seemed to work to get rid of bubble's jitteryness
+    if (abs(bubbles_pos[0] - player_pos[0]) < 5) and (abs(bubbles_pos[1] - player_pos[1]) < 5):
+        bubbles_pos[0] = player_pos[0]
+        bubbles_pos[1] = player_pos[1]
     else:
-        bubbles_pos[0] += adjust_bubbles_x
-        bubbles_pos[1] += adjust_bubbles_y
+        adjust_bubbles_x = 0
+        adjust_bubbles_y = 0
+        if bubbles_pos[0] < player_pos[0]:
+            adjust_bubbles_x += BUBBLES_SPEED // dt
+        if bubbles_pos[0] > player_pos[0]:
+            adjust_bubbles_x -= BUBBLES_SPEED // dt
+        if bubbles_pos[1] < player_pos[1]:
+            adjust_bubbles_y += BUBBLES_SPEED // dt
+        if bubbles_pos[1] > player_pos[1]:
+            adjust_bubbles_y -= BUBBLES_SPEED // dt
+        
+        if (adjust_bubbles_x != 0) and (adjust_bubbles_y != 0):
+            bubbles_pos[0] += SPEED_CORRECTION * adjust_bubbles_x // 1
+            bubbles_pos[1] += SPEED_CORRECTION * adjust_bubbles_y // 1
+        else:
+            bubbles_pos[0] += adjust_bubbles_x
+            bubbles_pos[1] += adjust_bubbles_y
 
+
+    # try and fix player_rect and bubbles_rect here
+    if previous_player_pos == player_pos:
+        player_rectangle  = pygame.Rect.move(player_rectangle, 0, 0)
+    else:
+        player_rectangle  = pygame.Rect.move(
+                                             player_rectangle, 
+                                             (player_pos[0] - previous_player_pos[0]), 
+                                             (player_pos[1] - previous_player_pos[1])
+                                             )
+    if previous_bubbles_pos == bubbles_pos:
+        bubbles_rectangle = pygame.Rect.move(bubbles_rectangle, 0, 0)
+    else:
+        bubbles_rectangle = pygame.Rect.move(
+                                             bubbles_rectangle, 
+                                             bubbles_pos[0] - previous_bubbles_pos[0], 
+                                             bubbles_pos[1] - previous_bubbles_pos[1])
+    # pygame.draw.rect(screen, BLUE,   player_rectangle )
+    # pygame.draw.rect(screen, YELLOW, bubbles_rectangle)
+
+    # screen stuff
     screen.fill(BLACK)
     screen.blit(player, player_pos)
     screen.blit(bubbles, bubbles_pos)
+    # pygame.draw.rect(screen, BLUE,   player_rectangle )
+    # pygame.draw.rect(screen, YELLOW, bubbles_rectangle)
 
     for this_bullet in all_of_the_bullets:
         if (this_bullet[0].centerx <= 0) or (this_bullet[0].centerx >= WIDTH) or (this_bullet[0].centery <= 0) or (this_bullet[0].centery >= HEIGHT):
@@ -199,11 +274,19 @@ while the_game_is_running:
                                         )+", "+str(
                                                 round(player_pos[1], 4)
                                                 ) +")")
+            print("previous player pos = ("+ str(
+                                        round(previous_player_pos[0], 4)
+                                        )+", "+str(
+                                                round(previous_player_pos[1], 4)
+                                                ) +")")
             print("number of bullets: "+ str(len(all_of_the_bullets)))
 
     pygame.time.delay(1000//FPS)
-    total_num_of_ticks += 1
+    total_num_of_ticks  += 1
+    previous_player_pos  = [player_pos[0],  player_pos[1] ]
+    previous_bubbles_pos = [bubbles_pos[0], bubbles_pos[1]]
 #
 print("")
 print("")
 print("- - - done - - -")
+print("")
