@@ -19,7 +19,7 @@ pygame.init()
 print("\n"*5)  # this is a spacer to make it easier to troubleshoot error messages
 
 # define pygame things and essential global things
-SIZE = WIDTH, HEIGHT = 1000, 1000
+SIZE = WIDTH, HEIGHT = 800, 800
 screen = pygame.display.set_mode(SIZE)
 
 TROUBLESHOOTING = False  # determines if print statements will occur after set amount of frames
@@ -109,19 +109,18 @@ while the_game_is_running:
         for b in all_of_the_bullets:
             this_bullet = b[0]
             if pygame.Rect.colliderect(bubbles_rectangle, this_bullet):
-                print("bubbles it hit")
+                # print("bubbles it hit")
                 bubbles_pos[0] = WIDTH  * random.random()
                 bubbles_pos[1] = HEIGHT * random.random()
                 bubbles_hit_tick = total_num_of_ticks
                 times_bubbles_killed += 1
     else:
-        print("bubbles currently immune")
+        # print("bubbles currently immune")
+        None
 
     if pygame.Rect.colliderect(bubbles_rectangle, player_rectangle):
-        print("you're getting hit!")
+        # print("you're getting hit!")
         the_game_is_running = False
-    else:
-        print("not hit")
 
 
     # player movement
