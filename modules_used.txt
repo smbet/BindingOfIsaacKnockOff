@@ -5,3 +5,6 @@ pip install mkl-service
 also probably already installed:
 time
 sys
+numpy
+math
+random
