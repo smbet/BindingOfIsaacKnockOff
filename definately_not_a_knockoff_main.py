@@ -20,38 +20,12 @@ from handling_bullet_stuff      import *
 
 print("\n"*5)  # this is a spacer to make it easier to troubleshoot error messages
 
-
 TROUBLESHOOTING = False  # determines if print statements will occur after set amount of frames
 
-clock = pygame.time.Clock()
-dt    = clock.tick(FPS)
 
-
-
-
-
-# define lots of colors
-BLACK   = (0,   0,   0)
-GRAY    = (127, 127, 127)
-WHITE   = (255, 255, 255)
-RED     = (255, 0,   0)
-GREEN   = (0,   255, 0)
-BLUE    = (0,   0,   255)
-YELLOW  = (255, 255, 0)
-CYAN    = (0,   255, 255)
-MAGENTA = (255, 0,   255)
-
-
-
-# initialize variables for loop
-player_shields       = 0
+# initialize variables for loop that had trouble in essential_global_variables.py that were giving the error "likely due to circular imports"
 previous_player_pos  = [player_pos[0] , player_pos[1] ]
 previous_bubbles_pos = [bubbles_pos[0], bubbles_pos[1]]
-bubbles_hit_tick     = 0
-player_hit_tick      = 0
-times_bubbles_killed = 0
-total_num_of_ticks   = 0
-the_game_is_running  = True
 while the_game_is_running:
     bullet_shotQ = False
     player_out_of_bounds_x = False
