@@ -8,7 +8,7 @@ Created on Thu Feb 16 08:16:11 2023
 import time
 import sys
 import math
-# import numpy as np
+import numpy as np
 import random
 import pygame
 from pygame.locals import *
@@ -32,26 +32,77 @@ SPEED_CORRECTION      = 1 / math.sqrt(2)
 PLAYER_SPEED          = 300
 player_speed_variable = 0
 
-BUBBLES_SPEED = PLAYER_SPEED / 2
-BUBBLES_COOLDOWN  = 0 # number of ticks that bubbles is immune after respawning
+BUBBLES_SPEED         = PLAYER_SPEED / 2
+BUBBLES_COOLDOWN      = 0 # number of ticks that bubbles is immune after respawning
 
-BULLET_SPEED       = 500
-BULLET_SIZE        = 15        # x y height of box of bullet
-BULLETS_PER_SECOND = 5
-BULLET_COOLDOWN    = FPS // BULLETS_PER_SECOND
-bullet_shot_at     = 0         # tracks when bullet is shot in terms of ticks
-bullet_shotQ       = False     # tracks to see if a bullet was shot (so you can't spam in multiple directions)
+POWER_UP_FREQUENCY    = 5 * FPS
+POWER_UP_INITIAL_WAIT = 2 * FPS
+PLAYER_IMMUNITY_TIME  = 1 * FPS
+POWER_UP_TYPES        = ["shield", "faster_shooting"]
+all_of_the_power_ups  = []
+# all_of_the_power_ups will store each bullet as a list of length 2 in the format:
+#          all_of_the_power_ups = [ [power_up_rect_object, "power_up_type"] ]
+# example: all_of_the_power_ups = [ [power_up_rect, "faster_shooting""], [power_up_rect, "extra_bullets"] ]
+
+BULLET_SPEED          = 500
+BULLET_SIZE           = 15        # x y height of box of bullet
+BULLETS_PER_SECOND    = 5
+bullet_boost          = 1
+BULLET_COOLDOWN       = FPS // BULLETS_PER_SECOND
+bullet_shot_at        = 0         # tracks when bullet is shot in terms of ticks
+bullet_shotQ          = False     # tracks to see if a bullet was shot (so you can't spam in multiple directions)
 def generate_bullet():
     return pygame.Rect(
                        player_pos[0] + pygame.Surface.get_width(player)  / 2, 
                        player_pos[1] + pygame.Surface.get_height(player) / 2, 
                        BULLET_SIZE, BULLET_SIZE
                        )
-
+VALID_SHOT_DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+all_of_the_bullets    = []
 # all_of_the_bullets will store each bullet as a list of length 2 in the format:
 #          all_of_the_bullets = [ [bullet_rect_object, "bullet_direction"] ]
 # example: all_of_the_bullets = [ [bullet_rect, "E"], [bullet_rect, "NW"], [bullet_rect, "SE"], [bullet_rect, "S"] ]
-all_of_the_bullets = []
+
+
+
+player             = pygame.image.load("resources/moon_50x50.png").convert()
+player_pos         = [WIDTH / 2, HEIGHT / 2]
+PLAYER_WIDTH       = pygame.Surface.get_width(player)
+PLAYER_HEIGHT      = pygame.Surface.get_height(player)
+player_rectangle   = pygame.Rect(
+                                 player_pos[0],
+                                 player_pos[1],
+                                 PLAYER_WIDTH,
+                                 PLAYER_HEIGHT
+                                 )
+
+
+bubbles            = pygame.image.load("resources/Bubbles_50x50.png").convert()
+bubbles_pos        = [WIDTH * random.random(), HEIGHT * random.random()]
+BUBBLES_WIDTH      = pygame.Surface.get_width(bubbles)
+BUBBLES_HEIGHT     = pygame.Surface.get_height(bubbles)
+bubbles_rectangle  = pygame.Rect(
+                                 bubbles_pos[0],
+                                 bubbles_pos[1],
+                                 BUBBLES_WIDTH,
+                                 BUBBLES_HEIGHT
+                                 )
+
+power_up            = pygame.image.load("resources/shitty_arrow_40x40.png").convert()
+bullet_speed_icon   = pygame.image.load("resources/bullet_speed_power_up_40x40.png").convert()
+shield_icon         = pygame.image.load("resources/shield_power_up_40x40.png").convert()
+POWER_UP_WIDTH      = pygame.Surface.get_width(bubbles)
+POWER_UP_HEIGHT     = pygame.Surface.get_height(bubbles)
+def generate_power_up():
+    power_up_pos       = [WIDTH * random.random(), HEIGHT * random.random()]
+    power_up_rectangle = pygame.Rect(
+                                     power_up_pos[0],
+                                     power_up_pos[1],
+                                     POWER_UP_WIDTH,
+                                     POWER_UP_HEIGHT
+                                     )
+    return power_up_rectangle
+
 
 # define lots of colors
 BLACK   = (0,   0,   0)
@@ -65,31 +116,16 @@ CYAN    = (0,   255, 255)
 MAGENTA = (255, 0,   255)
 
 
-player           = pygame.image.load("resources/moon_50x50.png").convert()
-player_pos       = [WIDTH / 2, HEIGHT / 2]
-player_rectangle = pygame.Rect(
-                               player_pos[0],
-                               player_pos[1],
-                               50,
-                               50
-                               )
 
-bubbles           = pygame.image.load("resources/Bubbles_50x50.png").convert()
-bubbles_pos       = [WIDTH * random.random(), HEIGHT * random.random()]
-bubbles_rectangle = pygame.Rect(
-                               bubbles_pos[0],
-                               bubbles_pos[1],
-                               50,
-                               50
-                               )
-
-
-previous_player_pos  = [player_pos[0],  player_pos[1] ]
+# initialize variables for loop
+player_shields       = 0
+previous_player_pos  = [player_pos[0] , player_pos[1] ]
 previous_bubbles_pos = [bubbles_pos[0], bubbles_pos[1]]
 bubbles_hit_tick     = 0
+player_hit_tick      = 0
+times_bubbles_killed = 0
 total_num_of_ticks   = 0
 the_game_is_running  = True
-times_bubbles_killed = 0
 while the_game_is_running:
     bullet_shotQ = False
     player_out_of_bounds_x = False
@@ -107,21 +143,45 @@ while the_game_is_running:
 
     if total_num_of_ticks > (bubbles_hit_tick + BUBBLES_COOLDOWN):
         for b in all_of_the_bullets:
-            this_bullet = b[0]
-            if pygame.Rect.colliderect(bubbles_rectangle, this_bullet):
+            if pygame.Rect.colliderect(bubbles_rectangle, b[0]):
                 # print("bubbles it hit")
-                bubbles_pos[0] = WIDTH  * random.random()
-                bubbles_pos[1] = HEIGHT * random.random()
+                respawnX = WIDTH  * random.random()
+                respawnY = HEIGHT * random.random()
+                # this should work, might need to fine tune the 
+                radius = 4*pygame.Surface.get_width(player)
+                while (np.sqrt( (respawnX - player_pos[0])**2 + (respawnY - player_pos[1])**2 ) < radius ):
+                    respawnX = WIDTH  * random.random()
+                    respawnY = HEIGHT * random.random()
+                    # print("respawning bubbles")
+                bubbles_pos[0] = respawnX
+                bubbles_pos[1] = respawnY
                 bubbles_hit_tick = total_num_of_ticks
                 times_bubbles_killed += 1
-    else:
-        # print("bubbles currently immune")
-        None
 
-    if pygame.Rect.colliderect(bubbles_rectangle, player_rectangle):
+                all_of_the_bullets.remove(b)
+
+    if pygame.Rect.colliderect(bubbles_rectangle, player_rectangle) and (total_num_of_ticks > player_hit_tick + PLAYER_IMMUNITY_TIME):
         # print("you're getting hit!")
-        the_game_is_running = False
+        if player_shields == 0:
+            the_game_is_running = False
+        else:
+            player_shields -= 1
+            player_hit_tick = total_num_of_ticks
+        
+        print("shields left: "+ str(player_shields))
 
+    for this_power_up in all_of_the_power_ups:
+        if pygame.Rect.colliderect(this_power_up[0], player_rectangle):
+            if this_power_up[1] == "shield":
+                player_shields += 1
+                print("shields: "+ str(player_shields))
+            if this_power_up[1] == "faster_shooting":
+                bullet_boost += 1
+                print("BULLET_BOOST ")
+            if this_power_up[1] == "extra_bullets":
+                print("extra_bullet not working yet")
+            
+            all_of_the_power_ups.remove(this_power_up)
 
     # player movement
     # start jank
@@ -153,7 +213,7 @@ while the_game_is_running:
     
 
     # bullet stuff
-    if total_num_of_ticks > (bullet_shot_at + BULLET_COOLDOWN):
+    if total_num_of_ticks > (bullet_shot_at + BULLET_COOLDOWN / bullet_boost):
         if (pressed_keys[pygame.K_UP] and pressed_keys[pygame.K_RIGHT]) and not bullet_shotQ:
             direction    = "NE"
             bullet_shotQ = True
@@ -190,13 +250,13 @@ while the_game_is_running:
     else:
         adjust_bubbles_x = 0
         adjust_bubbles_y = 0
-        if bubbles_pos[0] < player_pos[0]:
+        if bubbles_pos[0] < player_pos[0] - pygame.Surface.get_height(player) / pygame.Surface.get_height(bubbles) :
             adjust_bubbles_x += BUBBLES_SPEED // dt
-        if bubbles_pos[0] > player_pos[0]:
+        if bubbles_pos[0] > player_pos[0] + pygame.Surface.get_height(player) / pygame.Surface.get_height(bubbles):
             adjust_bubbles_x -= BUBBLES_SPEED // dt
-        if bubbles_pos[1] < player_pos[1]:
+        if bubbles_pos[1] < player_pos[1] - pygame.Surface.get_width(player) /  pygame.Surface.get_width(bubbles):
             adjust_bubbles_y += BUBBLES_SPEED // dt
-        if bubbles_pos[1] > player_pos[1]:
+        if bubbles_pos[1] > player_pos[1] + pygame.Surface.get_width(player) /  pygame.Surface.get_width(bubbles):
             adjust_bubbles_y -= BUBBLES_SPEED // dt
         
         if (adjust_bubbles_x != 0) and (adjust_bubbles_y != 0):
@@ -206,6 +266,15 @@ while the_game_is_running:
             bubbles_pos[0] += adjust_bubbles_x
             bubbles_pos[1] += adjust_bubbles_y
 
+    # power up stuff here
+    if total_num_of_ticks > POWER_UP_INITIAL_WAIT:
+        if (total_num_of_ticks % POWER_UP_FREQUENCY) == 0:
+            generated_power_up = POWER_UP_TYPES[np.random.randint( len(POWER_UP_TYPES) )]
+            all_of_the_power_ups.append([
+                                         generate_power_up(),
+                                         generated_power_up
+                                         ])
+            print("power_up = "+ str(generated_power_up))
 
     # try and fix player_rect and bubbles_rect here
     if previous_player_pos == player_pos:
@@ -223,19 +292,31 @@ while the_game_is_running:
                                              bubbles_rectangle, 
                                              bubbles_pos[0] - previous_bubbles_pos[0], 
                                              bubbles_pos[1] - previous_bubbles_pos[1])
-    # pygame.draw.rect(screen, BLUE,   player_rectangle )
-    # pygame.draw.rect(screen, YELLOW, bubbles_rectangle)
 
     # screen stuff
     screen.fill(BLACK)
     screen.blit(player, player_pos)
     screen.blit(bubbles, bubbles_pos)
+    for this_power_up in all_of_the_power_ups:
+        if this_power_up[1] == "faster_shooting":
+            screen.blit(bullet_speed_icon, 
+                        [this_power_up[0].centerx, 
+                        this_power_up[0].centery]
+                        )
+        if this_power_up[1] == "shield":
+            screen.blit(shield_icon, 
+                        [this_power_up[0].centerx, 
+                        this_power_up[0].centery]
+                        )
+    
     # pygame.draw.rect(screen, BLUE,   player_rectangle )
     # pygame.draw.rect(screen, YELLOW, bubbles_rectangle)
 
     for this_bullet in all_of_the_bullets:
         if (this_bullet[0].centerx <= 0) or (this_bullet[0].centerx >= WIDTH) or (this_bullet[0].centery <= 0) or (this_bullet[0].centery >= HEIGHT):
             all_of_the_bullets.remove(this_bullet)
+
+
     
     for i in range(len(all_of_the_bullets)):
         if all_of_the_bullets[i][1] == "N":
@@ -258,6 +339,7 @@ while the_game_is_running:
         pygame.draw.rect(screen, RED, all_of_the_bullets[i][0])
     
     pygame.display.update()
+
     if TROUBLESHOOTING:
         if (total_num_of_ticks % 5 == 0):
             print("player pos = ("+ str(
