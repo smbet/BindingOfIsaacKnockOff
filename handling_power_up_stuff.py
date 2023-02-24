@@ -20,7 +20,7 @@ speed_boost_icon    = pygame.image.load("resources/player_speed_power_up_40x40.p
 POWER_UP_WIDTH      = pygame.Surface.get_width(power_up)
 POWER_UP_HEIGHT     = pygame.Surface.get_height(power_up)
 def generate_power_up():
-    power_up_pos       = [essential_global_variables.WIDTH * random.random(), essential_global_variables.HEIGHT * random.random()]
+    power_up_pos       = [(essential_global_variables.WIDTH - POWER_UP_WIDTH) * random.random(), (essential_global_variables.HEIGHT - POWER_UP_HEIGHT) * random.random()]
     power_up_rectangle = pygame.Rect(
                                      power_up_pos[0],
                                      power_up_pos[1],

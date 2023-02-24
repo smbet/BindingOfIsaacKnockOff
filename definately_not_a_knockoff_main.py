@@ -19,13 +19,49 @@ from handling_bullet_stuff      import *
 
 
 print("\n"*5)  # this is a spacer to make it easier to troubleshoot error messages
-
 TROUBLESHOOTING = False  # determines if print statements will occur after set amount of frames
 
+all_of_the_walls = []
+def build_wall(wall_x, wall_y, wall_LENGTH, wall_HEIGHT):
 
-# initialize variables for loop that had trouble in essential_global_variables.py that were giving the error "likely due to circular imports"
-previous_player_pos  = [player_pos[0] , player_pos[1] ]
-previous_bubbles_pos = [bubbles_pos[0], bubbles_pos[1]]
+    wall_rectangle   = pygame.Rect(
+                                   wall_x,
+                                   wall_y,
+                                   wall_LENGTH,
+                                   wall_HEIGHT
+                                   )
+    all_of_the_walls.append( wall_rectangle )
+    return wall_rectangle
+
+def inside_wall(position, width, height):
+    for wall in all_of_the_walls:
+                if (
+                    (position[0] < (wall.centerx + wall.width/2 )) and (position[0] > (wall.centerx - wall.width/2 ))    or   (position[0] + width  < (wall.centerx + wall.width/2 )) and (position[0] + width  > (wall.centerx - wall.width/2 ))
+                    ) and (
+                    (position[1] < (wall.centery + wall.height/2)) and (position[1] > (wall.centery - wall.height/2))    or   (position[1] + height < (wall.centery + wall.height/2)) and (position[1] + height > (wall.centery - wall.height/2))
+                    ):
+                    return True
+    return False
+
+build_wall(WIDTH / 2 - 50,  HEIGHT / 4,  50, 3 * HEIGHT / 4)
+
+all_of_the_rocks = []
+def place_rock(rock_x, rock_y, rock_LENGTH, rock_HEIGHT, breakable: bool):
+
+    rock_rectangle   = pygame.Rect(
+                                   rock_x,
+                                   rock_y,
+                                   rock_LENGTH,
+                                   rock_HEIGHT
+                                   )
+    all_of_the_rocks.append( [rock_rectangle, breakable] )
+    return rock_rectangle
+
+
+
+player_backup_pos  = []
+bubbles_backup_pos = []
+
 while the_game_is_running:
     bullet_shotQ = False
     player_out_of_bounds_x = False
@@ -39,8 +75,7 @@ while the_game_is_running:
     if pressed_keys[pygame.K_ESCAPE]:
         the_game_is_running = False
     
-
-
+    # hitting bubbles with bullet collisions
     if total_num_of_ticks > (bubbles_hit_tick + BUBBLES_COOLDOWN):
         for b in all_of_the_bullets:
             if pygame.Rect.colliderect(bubbles_rectangle, b[0]):
@@ -60,6 +95,7 @@ while the_game_is_running:
 
                 all_of_the_bullets.remove(b)
 
+    # bubbles-player collision
     if pygame.Rect.colliderect(bubbles_rectangle, player_rectangle) and (total_num_of_ticks > player_hit_tick + PLAYER_IMMUNITY_TIME):
         # print("you're getting hit!")
         if player_shields == 0:
@@ -70,6 +106,7 @@ while the_game_is_running:
         
         print("shields left: "+ str(player_shields))
 
+    # power up collisions
     for this_power_up in all_of_the_power_ups:
         if pygame.Rect.colliderect(this_power_up[0], player_rectangle):
             if this_power_up[1] == "shield":
@@ -94,6 +131,11 @@ while the_game_is_running:
         correct_speed = True
     # end jank
     adjust_player_speed_by = (correct_speed * SPEED_CORRECTION + 1*(not correct_speed)) * (PLAYER_SPEED + player_speed_variable) // dt
+    if inside_wall(player_pos, PLAYER_WIDTH, PLAYER_HEIGHT):
+        player_pos[0] = player_backup_pos[0]
+        player_pos[1] = player_backup_pos[1]
+    else:
+        player_backup_pos = player_pos
     if (player_pos[0] < 0):
         player_out_of_bounds_x = True
         player_pos[0] = 1
@@ -150,9 +192,9 @@ while the_game_is_running:
 
     # stuff for bubbles
     # the "< 5" bit here was picked arbitrarily because it seemed to work to get rid of bubble's jitteryness
-    if (abs(bubbles_pos[0] - player_pos[0]) < 5) and (abs(bubbles_pos[1] - player_pos[1]) < 5):
-        bubbles_pos[0] = player_pos[0]
-        bubbles_pos[1] = player_pos[1]
+    # if (abs(bubbles_pos[0] - player_pos[0]) < 5) and (abs(bubbles_pos[1] - player_pos[1]) < 5):
+    #     bubbles_pos[0] = player_pos[0]
+    #     bubbles_pos[1] = player_pos[1]
     else:
         adjust_bubbles_x = 0
         adjust_bubbles_y = 0
@@ -160,11 +202,17 @@ while the_game_is_running:
             adjust_bubbles_x += BUBBLES_SPEED // dt
         if bubbles_pos[0] > player_pos[0] + pygame.Surface.get_height(player) / pygame.Surface.get_height(bubbles):
             adjust_bubbles_x -= BUBBLES_SPEED // dt
-        if bubbles_pos[1] < player_pos[1] - pygame.Surface.get_width(player) /  pygame.Surface.get_width(bubbles):
+        if bubbles_pos[1] < player_pos[1] - pygame.Surface.get_width(player)  / pygame.Surface.get_width(bubbles):
             adjust_bubbles_y += BUBBLES_SPEED // dt
-        if bubbles_pos[1] > player_pos[1] + pygame.Surface.get_width(player) /  pygame.Surface.get_width(bubbles):
+        if bubbles_pos[1] > player_pos[1] + pygame.Surface.get_width(player)  / pygame.Surface.get_width(bubbles):
             adjust_bubbles_y -= BUBBLES_SPEED // dt
         
+        if inside_wall(player_pos,  PLAYER_WIDTH,  PLAYER_HEIGHT ):
+            print("player inside wall")
+        if inside_wall(bubbles_pos, BUBBLES_WIDTH, BUBBLES_HEIGHT):
+            print("bubbles inside wall")
+        
+
         if (adjust_bubbles_x != 0) and (adjust_bubbles_y != 0):
             bubbles_pos[0] += SPEED_CORRECTION * adjust_bubbles_x // 1
             bubbles_pos[1] += SPEED_CORRECTION * adjust_bubbles_y // 1
@@ -172,15 +220,21 @@ while the_game_is_running:
             bubbles_pos[0] += adjust_bubbles_x
             bubbles_pos[1] += adjust_bubbles_y
 
+    
+
     # power up stuff here
     if total_num_of_ticks > POWER_UP_INITIAL_WAIT:
         if (total_num_of_ticks % POWER_UP_FREQUENCY) == 0:
-            generated_power_up = POWER_UP_TYPES[np.random.randint( len(POWER_UP_TYPES) )]
+            generated_power_up_type = POWER_UP_TYPES[np.random.randint( len(POWER_UP_TYPES) )]
+            generated_power_up      = generate_power_up()
+            while inside_wall([generated_power_up.centerx, generated_power_up.centery], POWER_UP_WIDTH, POWER_UP_HEIGHT):
+                print("trying to generate power up")
+                generated_power_up      = generate_power_up()
             all_of_the_power_ups.append([
-                                         generate_power_up(),
-                                         generated_power_up
-                                         ])
-            print("power_up = "+ str(generated_power_up))
+                                        generated_power_up,
+                                        generated_power_up_type
+                                        ])
+            print("power_up = "+ str(generated_power_up_type))
 
     # try and fix player_rect and bubbles_rect here
     if previous_player_pos == player_pos:
@@ -219,6 +273,9 @@ while the_game_is_running:
                         [this_power_up[0].centerx, 
                         this_power_up[0].centery]
                         )
+    #wall stuff here
+    for wall in all_of_the_walls:
+        pygame.draw.rect(screen, BLUE, wall)
     
     # pygame.draw.rect(screen, BLUE,   player_rectangle )
     # pygame.draw.rect(screen, YELLOW, bubbles_rectangle)
@@ -226,8 +283,8 @@ while the_game_is_running:
     for this_bullet in all_of_the_bullets:
         if (this_bullet[0].centerx <= 0) or (this_bullet[0].centerx >= WIDTH) or (this_bullet[0].centery <= 0) or (this_bullet[0].centery >= HEIGHT):
             all_of_the_bullets.remove(this_bullet)
-
-
+        if inside_wall([this_bullet[0].centerx, this_bullet[0].centery], this_bullet[0].width, this_bullet[0].height):
+            all_of_the_bullets.remove(this_bullet)
     
     for i in range(len(all_of_the_bullets)):
         if all_of_the_bullets[i][1] == "N":
