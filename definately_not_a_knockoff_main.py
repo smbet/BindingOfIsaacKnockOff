@@ -16,6 +16,7 @@ from essential_global_variables import *
 from entities                   import *
 from handling_power_up_stuff    import *
 from handling_bullet_stuff      import *
+import sfx
 
 
 print("\n"*5)  # this is a spacer to make it easier to troubleshoot error messages
@@ -36,9 +37,13 @@ def build_wall(wall_x, wall_y, wall_LENGTH, wall_HEIGHT):
 def inside_wall(position, width, height):
     for wall in all_of_the_walls:
                 if (
-                    (position[0] < (wall.centerx + wall.width/2 )) and (position[0] > (wall.centerx - wall.width/2 ))    or   (position[0] + width  < (wall.centerx + wall.width/2 )) and (position[0] + width  > (wall.centerx - wall.width/2 ))
-                    ) and (
-                    (position[1] < (wall.centery + wall.height/2)) and (position[1] > (wall.centery - wall.height/2))    or   (position[1] + height < (wall.centery + wall.height/2)) and (position[1] + height > (wall.centery - wall.height/2))
+                    (position[0] < (wall.centerx + wall.width/2 )) and (position[0] > (wall.centerx - wall.width/2 ))    
+                    or   
+                    (position[0] + width  < (wall.centerx + wall.width/2 )) and (position[0] + width  > (wall.centerx - wall.width/2 ))) and (
+                    
+                    (position[1] < (wall.centery + wall.height/2)) and (position[1] > (wall.centery - wall.height/2))    
+                    or   
+                    (position[1] + height < (wall.centery + wall.height/2)) and (position[1] + height > (wall.centery - wall.height/2))
                     ):
                     return True
     return False
@@ -61,6 +66,13 @@ def place_rock(rock_x, rock_y, rock_LENGTH, rock_HEIGHT, breakable: bool):
 
 player_backup_pos  = []
 bubbles_backup_pos = []
+
+### Steven's sound corner
+
+pygame.mixer.init()
+short_laser = sfx.get_shooty()
+
+###
 
 while the_game_is_running:
     bullet_shotQ = False
@@ -186,6 +198,7 @@ while the_game_is_running:
             bullet_shotQ = True
         if bullet_shotQ:
             bullet_shot_at = total_num_of_ticks
+            sfx.shooty(short_laser) # feel free to fold this into generate_bullet if that makes it cleaner
             all_of_the_bullets.append([
                                        generate_bullet(player, player_pos), 
                                        direction])
