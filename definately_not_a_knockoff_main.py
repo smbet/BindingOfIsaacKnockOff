@@ -36,16 +36,30 @@ def build_wall(wall_x, wall_y, wall_LENGTH, wall_HEIGHT):
 
 def inside_wall(position, width, height):
     for wall in all_of_the_walls:
-                if (
-                    (position[0] < (wall.centerx + wall.width/2 )) and (position[0] > (wall.centerx - wall.width/2 ))    
-                    or   
-                    (position[0] + width  < (wall.centerx + wall.width/2 )) and (position[0] + width  > (wall.centerx - wall.width/2 ))) and (
-                    
-                    (position[1] < (wall.centery + wall.height/2)) and (position[1] > (wall.centery - wall.height/2))    
-                    or   
-                    (position[1] + height < (wall.centery + wall.height/2)) and (position[1] + height > (wall.centery - wall.height/2))
-                    ):
-                    return True
+            if (
+                (position[0] < (wall.centerx + wall.width/2 )) and (position[0] > (wall.centerx - wall.width/2 )
+                    )    or   (position[0] + width  < (wall.centerx + wall.width/2 )) and (position[0] + width  > (wall.centerx - wall.width/2 ))
+                ) and (
+                (position[1] < (wall.centery + wall.height/2)) and (position[1] > (wall.centery - wall.height/2)
+                    )    or   (position[1] + height < (wall.centery + wall.height/2)) and (position[1] + height > (wall.centery - wall.height/2))
+                ):
+                return True
+    return False
+
+def x_inside_wall(position_x, width):
+    for wall in all_of_the_walls:
+            if (
+                (position_x[0] < (wall.centerx + wall.width/2 )) and (position_x[0] > (wall.centerx - wall.width/2 ))    or   (position_x[0] + width  < (wall.centerx + wall.width/2 )) and (position_x[0] + width  > (wall.centerx - wall.width/2 ))
+                ):
+                return True
+    return False
+
+def y_inside_wall(position_y, height):
+    for wall in all_of_the_walls:
+            if (
+                (position_y[1] < (wall.centery + wall.height/2)) and (position_y[1] > (wall.centery - wall.height/2))    or   (position_y[1] + height < (wall.centery + wall.height/2)) and (position_y[1] + height > (wall.centery - wall.height/2))
+                ):
+                return True
     return False
 
 build_wall(WIDTH / 2 - 50,  HEIGHT / 4,  50, 3 * HEIGHT / 4)
@@ -143,11 +157,13 @@ while the_game_is_running:
         correct_speed = True
     # end jank
     adjust_player_speed_by = (correct_speed * SPEED_CORRECTION + 1*(not correct_speed)) * (PLAYER_SPEED + player_speed_variable) // dt
-    if inside_wall(player_pos, PLAYER_WIDTH, PLAYER_HEIGHT):
-        player_pos[0] = player_backup_pos[0]
-        player_pos[1] = player_backup_pos[1]
-    else:
-        player_backup_pos = player_pos
+
+    # if inside_wall(player_pos, PLAYER_WIDTH, PLAYER_HEIGHT):
+    #     player_pos[0] = previous_player_pos[0]
+    #     player_pos[1] = previous_player_pos[1]
+    # else:
+    #     player_backup_pos = player_pos
+
     if (player_pos[0] < 0):
         player_out_of_bounds_x = True
         player_pos[0] = 1
@@ -160,14 +176,29 @@ while the_game_is_running:
     if (player_pos[1] > HEIGHT - pygame.Surface.get_height(player)):
         player_out_of_bounds_y = True
         player_pos[1] = HEIGHT - pygame.Surface.get_height(player) - 1
+    player_test_position = previous_player_pos
     if pressed_keys[pygame.K_w]:
-        player_pos[1] -= adjust_player_speed_by * (1 - player_out_of_bounds_y)
+        # player_pos[1] -= adjust_player_speed_by * (1 - player_out_of_bounds_y)
+        player_test_position[1] = (player_pos[1] - adjust_player_speed_by * (1 - player_out_of_bounds_y))
     if pressed_keys[pygame.K_s]:
-        player_pos[1] += adjust_player_speed_by * (1 - player_out_of_bounds_y)
+        # player_pos[1] += adjust_player_speed_by * (1 - player_out_of_bounds_y)
+        player_test_position[1] = (player_pos[1] + adjust_player_speed_by * (1 - player_out_of_bounds_y))
     if pressed_keys[pygame.K_a]:
-        player_pos[0] -= adjust_player_speed_by * (1 - player_out_of_bounds_x)
+        # player_pos[0] -= adjust_player_speed_by * (1 - player_out_of_bounds_x)
+        player_test_position[0] = (player_pos[0] - adjust_player_speed_by * (1 - player_out_of_bounds_x))
     if pressed_keys[pygame.K_d]:
-        player_pos[0] += adjust_player_speed_by * (1 - player_out_of_bounds_x)
+        # player_pos[0] += adjust_player_speed_by * (1 - player_out_of_bounds_x)
+        player_test_position[0] = (player_pos[0] + adjust_player_speed_by * (1 - player_out_of_bounds_x))
+    
+    # while x_inside_wall(player_test_position[0], PLAYER_WIDTH):
+    #     player_test_position[0]
+    for wall in all_of_the_walls:
+        while inside_wall(player_test_position, PLAYER_WIDTH, PLAYER_HEIGHT) and (player_test_position[0] < (wall.centerx + wall.width/2 )) and (player_test_position[0] > (wall.centerx - wall.width/2 )):
+            player_test_position[0] += 1
+        while inside_wall(player_test_position, PLAYER_WIDTH, PLAYER_HEIGHT) and (player_test_position[0] + PLAYER_WIDTH  < (wall.centerx + wall.width/2 )) and (player_test_position[0] + PLAYER_WIDTH  > (wall.centerx - wall.width/2 )):
+            player_test_position[0] -= 1
+    player_pos[0] = player_test_position[0]
+    player_pos[1] = player_test_position[1]
     
 
     # bullet stuff
